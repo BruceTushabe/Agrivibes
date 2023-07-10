@@ -1,18 +1,18 @@
 import nltk
 from nltk.stem.lancaster import LancasterStemmer
 import numpy as np
-import tflearn
 import tensorflow as tf
+from tensorflow import keras
+from keras.layers import Dense
+from keras.models import Sequential, load_model
 import json
 import pickle
 import random
 
+# loading intents.json
 
-
-# loading intents,json
-
-with open('intents,json') as intents:
-    data = json.load(intents)
+with open('intents.json') as intents_file:
+    data = json.load(intents_file)
 
 stemmer = LancasterStemmer()
 
@@ -67,16 +67,14 @@ output = np.array(output)
 
 # Training the neural network
 
-net = tflearn.input_data(shape=[None, len(training[0])])
-net = tflearn.fully_connected(net, 10)
-net = tflearn.fully_connected(net, 10)
-net = tflearn.fully_connected(net, 10)
-net = tflearn.fully_connected(net, len(output[0]), activation='softmax')
-net = tflearn.regression(net)
-
-model = tflearn.DNN(net)
-model.fit(training, output, n_epoch = 500, batch_size = 8, show_metric=True)
-model.save('model.tflearn')
+model = Sequential()
+model.add(Dense(10, input_shape=(len(training[0]),), activation = 'relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(len(output[0]), activation='softmax'))
+model.compile(loss= 'categorical_crossentropy', optimizer='adam', metrics = ['accuracy'])
+model.fit(training, output, epochs= 500, batch_size =8, verbose=1)
+model.save('my_model.keras')
 
 # Making predictions
 
@@ -93,7 +91,7 @@ def bag_of_words(s, words):
     
     return np.array(bag)
 
-# Creating a chat function that ties all together
+# Creating a chat function that ties everything together
 
 def chat():
 
@@ -117,6 +115,9 @@ def chat():
         if tg['tag'] == tag:
             responses = tg['responses']
             print("Bot: \t " + random.choice(responses))
+
+
+chat()
 
 
 
